@@ -82,10 +82,12 @@ class ChatEngineException(
  * Local inference boundary consumed by the Android chat orchestrator.
  *
  * Contract:
- * - Calls that mutate or use the runtime must be serialized by the implementation.
+ * - Model load, generation and unload have one serialized owner; do not access the
+ *   underlying Engine/Conversation concurrently from unrelated threads.
  * - loadModel must initialize off the main thread and publish READY only after success.
  * - generate emits incremental text through onToken and returns only after completion.
- * - coroutine cancellation and cancelGeneration must stop active generation safely.
+ * - coroutine cancellation must stop generation; cancelGeneration must signal the
+ *   active generation without waiting behind the generation's blocking work.
  * - unloadModel releases model/runtime memory and is safe when no model is loaded.
  * - errors must be typed; partial output must never be saved as a completed assistant turn.
  */
