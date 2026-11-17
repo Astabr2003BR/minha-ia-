@@ -1,13 +1,7 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
-      - feature/phase1-scaffold
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
