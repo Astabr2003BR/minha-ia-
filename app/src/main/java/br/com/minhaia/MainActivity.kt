@@ -55,10 +55,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onDestroy() {
-        if (::chatDatabase.isInitialized) chatDatabase.close()
-        super.onDestroy()
-    }
 }
 
 @Composable
@@ -69,6 +65,7 @@ private fun HomeScreen(database: ChatDatabase) {
     var isLoading by remember { mutableStateOf(true) }
     var storageNotice by remember { mutableStateOf("Carregando histórico local...") }
     var memoryEnabled by remember { mutableStateOf(false) }
+    var isWriting by remember { mutableStateOf(false) }
     var showClearConfirmation by remember { mutableStateOf(false) }
     val messages = remember { mutableStateListOf<ChatMessage>() }
     val scope = rememberCoroutineScope()
@@ -97,6 +94,7 @@ private fun HomeScreen(database: ChatDatabase) {
             confirmButton = {
                 TextButton(onClick = {
                     showClearConfirmation = false
+                    isWriting = true
                     scope.launch {
                         try {
                             withContext(Dispatchers.IO) { database.clearMessages() }
@@ -104,6 +102,8 @@ private fun HomeScreen(database: ChatDatabase) {
                             storageNotice = "Histórico apagado deste aparelho."
                         } catch (_: Exception) {
                             storageNotice = "Não foi possível apagar o histórico."
+                        } finally {
+                            isWriting = false
                         }
                     }
                 }) { Text("Apagar") }
@@ -176,12 +176,13 @@ private fun HomeScreen(database: ChatDatabase) {
                     Button(
                         onClick = {
                             val clean = draft.trim()
-                            if (clean.isNotEmpty() && !isLoading) {
+                            if (clean.isNotEmpty() && !isLoading && !isWriting) {
                                 val message = ChatMessage(
                                     id = UUID.randomUUID().toString(),
                                     text = clean,
                                     createdAt = System.currentTimeMillis()
                                 )
+                                isWriting = true
                                 scope.launch {
                                     try {
                                         withContext(Dispatchers.IO) { database.insertMessage(message) }
@@ -191,11 +192,13 @@ private fun HomeScreen(database: ChatDatabase) {
                                         storageNotice = "Mensagem salva neste aparelho."
                                     } catch (_: Exception) {
                                         storageNotice = "Falha ao salvar. A mensagem foi mantida no campo para nova tentativa."
+                                    } finally {
+                                        isWriting = false
                                     }
                                 }
                             }
                         },
-                        enabled = draft.isNotBlank() && !isLoading
+                        enabled = draft.isNotBlank() && !isLoading && !isWriting
                     ) { Text("Enviar") }
                 }
                 Text(storageNotice, style = MaterialTheme.typography.bodySmall)
@@ -203,7 +206,7 @@ private fun HomeScreen(database: ChatDatabase) {
                     "Ainda não há respostas automáticas. O histórico é independente da memória configurável.",
                     style = MaterialTheme.typography.bodySmall
                 )
-                TextButton(onClick = { showClearConfirmation = true }, enabled = !isLoading) {
+                TextButton(onClick = { showClearConfirmation = true }, enabled = !isLoading && !isWriting) {
                     Text("Apagar histórico")
                 }
             }
@@ -223,15 +226,18 @@ private fun HomeScreen(database: ChatDatabase) {
                         }
                         Switch(
                             checked = memoryEnabled,
+                            enabled = !isWriting,
                             onCheckedChange = { enabled ->
-                                memoryEnabled = enabled
+                                isWriting = true
                                 scope.launch {
                                     try {
                                         withContext(Dispatchers.IO) { database.setMemoryEnabled(enabled) }
+                                        memoryEnabled = enabled
                                         storageNotice = "Preferência de memória salva."
                                     } catch (_: Exception) {
-                                        memoryEnabled = !enabled
                                         storageNotice = "Não foi possível salvar a preferência."
+                                    } finally {
+                                        isWriting = false
                                     }
                                 }
                             }
