@@ -11,7 +11,8 @@
 ## Fase 1 — Esqueleto executável
 - [x] Criar projeto Android Kotlin/Compose (build ainda precisa ser confirmado após correção de dependências).
 - [x] Criar projeto Web React/TypeScript/Vite.
-- [ ] Configurar lint, formatação e testes automatizados.
+- [ ] Configurar lint e formatação.
+- [x] Criar testes unitários iniciais do contrato ChatEngine (execução ainda pendente).
 - [x] Criar navegação e telas iniciais de Chat, Mangá, Documentos e Memória.
 - [x] Adicionar armazenamento local mínimo (SQLite Android e IndexedDB Web).
 - [x] Importar TXT/Markdown com validação e limites locais.
