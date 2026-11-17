@@ -154,18 +154,12 @@ async function writeDocument(document: LocalDocument): Promise<void> {
       const transaction = database.transaction(DOCUMENTS_STORE, "readwrite");
       const store = transaction.objectStore(DOCUMENTS_STORE);
       store.put(document);
-      const countRequest = store.count();
-      countRequest.onsuccess = () => {
-        if (countRequest.result > MAX_DOCUMENTS) {
-          const cursorRequest = store.openCursor();
-          cursorRequest.onsuccess = () => {
-            const cursor = cursorRequest.result;
-            if (cursor) {
-              cursor.delete();
-              cursor.continue();
-            }
-          };
-        }
+      const allRequest = store.getAll();
+      allRequest.onsuccess = () => {
+        const all = (allRequest.result as LocalDocument[])
+          .sort((a, b) => a.createdAt - b.createdAt);
+        const excess = all.length - MAX_DOCUMENTS;
+        for (const item of all.slice(0, Math.max(0, excess))) store.delete(item.id);
       };
       transaction.oncomplete = () => resolve();
       transaction.onerror = () => reject(transaction.error ?? new Error("Falha ao salvar o documento."));
