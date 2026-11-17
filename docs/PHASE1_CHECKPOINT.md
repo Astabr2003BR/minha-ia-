@@ -38,9 +38,15 @@ feature/phase1-scaffold
 - Static review confirmed Web IndexedDB schema version 3, separate document store, UTF-8 validation, 1 MiB limit and deterministic pruning of oldest documents.
 - GitHub Actions run 44168983019 on commit 4e0b685dffec56acc72b9e138c54387ba2ed7b78 completed the Web dependency installation and production build successfully.
 - The Android debug build in that run failed at dependency resolution before Kotlin compilation: activity-compose:1.14.0 and lifecycle-runtime-ktx:2.12.0 could not be found in the configured Google Maven or Maven Central repositories.
-- Those declarations were corrected in commit 424c20b5a72a59b156fe415710bd9d47a1380ed8 to the official AndroidX stable versions activity-compose:1.13.0 and lifecycle-runtime-ktx:2.11.0. This correction has not yet been built or runtime-tested.
+- Those declarations were corrected to activity-compose:1.13.0 and lifecycle-runtime-ktx:2.11.0. This correction has not yet been built or runtime-tested.
 - No browser runtime, Android emulator, physical-device or POCO X6 5G test has been executed.
 - CI is configured for manual workflow dispatch only; pushes do not trigger builds. No build was started during this continuation.
+- Repository does not contain Gradle Wrapper scripts/JAR; CI uses Gradle 9.6.0 directly.
+
+## Device profile
+- User-confirmed target: POCO X6 5G, 8 GB RAM, 256 GB internal storage.
+- Free storage, Android/HyperOS version and runtime-available RAM are not measured.
+- First model benchmark candidate documented in docs/DEVICE_PROFILE.md; it is not yet integrated or approved.
 
 ## Security notes
 - No broad Android storage permission was added; file access is user-initiated through the system picker.
