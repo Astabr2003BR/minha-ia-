@@ -10,8 +10,11 @@ type StoredConversation = {
 };
 
 const DATABASE_NAME = "minha-ia-local";
+const DATABASE_VERSION = 2;
 const STORE_NAME = "conversations";
+const SETTINGS_STORE = "settings";
 const CONVERSATION_KEY = "main";
+const MEMORY_KEY = "memoryEnabled";
 const MAX_MESSAGES = 300;
 const MAX_MESSAGE_LENGTH = 10_000;
 
@@ -22,6 +25,7 @@ function isChatMessage(value: unknown): value is ChatMessage {
     typeof candidate.id === "string" &&
     candidate.id.length > 0 &&
     typeof candidate.text === "string" &&
+    candidate.text.length > 0 &&
     candidate.text.length <= MAX_MESSAGE_LENGTH &&
     typeof candidate.createdAt === "number" &&
     Number.isFinite(candidate.createdAt)
@@ -35,11 +39,14 @@ function openDatabase(): Promise<IDBDatabase> {
       return;
     }
 
-    const request = indexedDB.open(DATABASE_NAME, 1);
+    const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
     request.onupgradeneeded = () => {
       const database = request.result;
       if (!database.objectStoreNames.contains(STORE_NAME)) {
         database.createObjectStore(STORE_NAME);
+      }
+      if (!database.objectStoreNames.contains(SETTINGS_STORE)) {
+        database.createObjectStore(SETTINGS_STORE);
       }
     };
     request.onsuccess = () => {
@@ -93,13 +100,12 @@ async function writeChatMessages(messages: ChatMessage[]): Promise<void> {
     throw new Error("Não foi possível salvar: mensagem inválida.");
   }
 
-  const boundedMessages = messages.slice(-MAX_MESSAGES);
   const database = await openDatabase();
   try {
     await new Promise<void>((resolve, reject) => {
       const transaction = database.transaction(STORE_NAME, "readwrite");
       transaction.objectStore(STORE_NAME).put(
-        { schemaVersion: 1, messages: boundedMessages } satisfies StoredConversation,
+        { schemaVersion: 1, messages: messages.slice(-MAX_MESSAGES) } satisfies StoredConversation,
         CONVERSATION_KEY,
       );
       transaction.oncomplete = () => resolve();
@@ -111,14 +117,70 @@ async function writeChatMessages(messages: ChatMessage[]): Promise<void> {
   }
 }
 
-export const CHAT_MESSAGE_LIMIT = MAX_MESSAGE_LENGTH;
-export const CHAT_HISTORY_LIMIT = MAX_MESSAGES;
+async function writeMemoryEnabled(enabled: boolean): Promise<void> {
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(SETTINGS_STORE, "readwrite");
+      transaction.objectStore(SETTINGS_STORE).put(enabled, MEMORY_KEY);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error ?? new Error("Falha ao salvar a preferência."));
+      transaction.onabort = () => reject(transaction.error ?? new Error("Salvamento da preferência cancelado."));
+    });
+  } finally {
+    database.close();
+  }
+}
 
+async function deleteStoredChat(): Promise<void> {
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, "readwrite");
+      transaction.objectStore(STORE_NAME).delete(CONVERSATION_KEY);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error ?? new Error("Falha ao apagar o histórico."));
+      transaction.onabort = () => reject(transaction.error ?? new Error("Exclusão do histórico cancelada."));
+    });
+  } finally {
+    database.close();
+  }
+}
 
 let writeQueue: Promise<void> = Promise.resolve();
 
-export function saveChatMessages(messages: ChatMessage[]): Promise<void> {
-  const operation = writeQueue.then(() => writeChatMessages(messages));
-  writeQueue = operation.catch(() => undefined);
-  return operation;
+function enqueueWrite(operation: () => Promise<void>): Promise<void> {
+  const pending = writeQueue.then(operation);
+  writeQueue = pending.catch(() => undefined);
+  return pending;
 }
+
+export function saveChatMessages(messages: ChatMessage[]): Promise<void> {
+  return enqueueWrite(() => writeChatMessages(messages));
+}
+
+export function saveMemoryEnabled(enabled: boolean): Promise<void> {
+  return enqueueWrite(() => writeMemoryEnabled(enabled));
+}
+
+export function clearChatMessages(): Promise<void> {
+  return enqueueWrite(deleteStoredChat);
+}
+
+export async function loadMemoryEnabled(): Promise<boolean> {
+  const database = await openDatabase();
+  try {
+    return await new Promise((resolve, reject) => {
+      const transaction = database.transaction(SETTINGS_STORE, "readonly");
+      const request = transaction.objectStore(SETTINGS_STORE).get(MEMORY_KEY);
+      request.onsuccess = () => resolve(request.result === true);
+      request.onerror = () => reject(request.error ?? new Error("Falha ao ler a preferência de memória."));
+      transaction.onabort = () => reject(transaction.error ?? new Error("Leitura da preferência cancelada."));
+    });
+  } finally {
+    database.close();
+  }
+}
+
+export const CHAT_MESSAGE_LIMIT = MAX_MESSAGE_LENGTH;
+export const CHAT_HISTORY_LIMIT = MAX_MESSAGES;
