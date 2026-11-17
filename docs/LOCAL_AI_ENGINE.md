@@ -23,7 +23,19 @@ Primary candidate: LiteRT-LM Android Kotlin API.
 - Engine initialization can take several seconds; it must run off the UI thread.
 - Engine and Conversation are closeable resources and must be closed on lifecycle/engine replacement.
 - Model files are not bundled in Git; they are downloaded/imported by explicit user action and stored privately.
-- Do not use a dynamic latest.release dependency in production. Resolve and pin a tested version before adding it.
+- Pin an exact tested version; never use a dynamic `latest.release` dependency in production.
+
+Initial prototype pin to evaluate: `com.google.ai.edge.litertlm:litertlm-android:0.18.0`. This is a candidate, not yet added to Gradle or build-verified.
+
+### First model candidate for the confirmed POCO X6 5G (8 GB RAM / 256 GB)
+- Repository: `litert-community/Qwen3-0.6B`.
+- Artifact: `Qwen3-0.6B.litertlm`, approximately 614 MB, dynamic INT8 weights, advertised context 4096.
+- Immutable model repository revision: `e6687177e00897731e7716267eebd4eba0dde7c2`.
+- Published SHA-256: `c5f39b4191926786c3e6668b62af4d6eb15248dfc7a5348252a9b406f33f2108`.
+- Model card indicates Apache-2.0; confirm base-model terms and required attribution before distribution.
+- This is the first benchmark candidate only. Portuguese quality, RAM peak, speed, thermal behavior and battery impact on the POCO X6 are unknown.
+
+Do not start with the newer approximately 328 MiB dynamic INT4 artifact: its model card documents a newer runtime requirement for the GPU path and material differences in memory use. Keep the first experiment on one pinned runtime/artifact pair.
 
 Fallback candidate: llama.cpp Android binding / GGUF.
 - Keep behind the same app-level interface.
@@ -31,11 +43,12 @@ Fallback candidate: llama.cpp Android binding / GGUF.
 - Avoid maintaining two active runtimes in the first release.
 
 ### Web
-Primary candidate: LiteRT-LM Web package (@litert-lm/core) for local token streaming.
+Primary candidate: LiteRT-LM Web package (`@litert-lm/core`) for local token streaming.
 - Runtime availability depends on a supported browser and available WebGPU/WASM capabilities.
 - Capability-detect at runtime; show a clear unsupported-device state instead of silently switching to a paid server.
 - Keep browser model storage separate from Android app storage.
 - Do not assume that an Android model binary is directly interchangeable with every Web runtime/model format.
+- The Web package is a separate prototype and is not part of the Android model benchmark.
 
 ## 3. Application boundaries
 
@@ -65,7 +78,7 @@ No fake/demo response may be presented as AI output.
 
 - User explicitly chooses to download or import a model.
 - Show model name, publisher, exact version/revision, license, size, supported runtime, and expected RAM before download.
-- Verify SHA-256 against a trusted manifest before loading.
+- Verify SHA-256 against a trusted, versioned manifest before loading.
 - Use HTTPS and atomic download to a temporary file; rename only after full size/hash validation.
 - Resume/retry must not expose a partial model as ready.
 - No model weights in the public Git repository.
@@ -104,17 +117,20 @@ First milestone should deliver text-based manga planning and structured panel de
 
 ## 8. Device qualification and benchmarks
 
-Before selecting a model for the POCO X6 5G, record:
-- exact RAM variant and free storage;
-- Android version and available ABI;
-- model file size and quantization;
-- peak resident memory, load time, time-to-first-token, sustained tokens/second;
+The confirmed target is POCO X6 5G with 8 GB physical RAM and 256 GB internal storage. Free storage, Android/HyperOS version and available RAM under load are not yet measured.
+
+Before selecting a production model, record:
+- available RAM before load and peak resident memory;
+- free storage before download and after model/cache installation;
+- model file size, quantization and immutable revision;
+- load time, time-to-first-token, sustained tokens/second;
 - thermal behavior during a 10-minute session;
 - battery impact and behavior after app backgrounding;
 - context length and quality on a fixed Portuguese test set.
 
 Test at least:
 - short Portuguese chat;
+- Portuguese instructions and manga planning;
 - long conversation near context limit;
 - cancellation mid-generation;
 - app background/foreground during generation;
@@ -124,7 +140,7 @@ Test at least:
 - no network after model download;
 - unsupported browser/WebGPU state.
 
-A model is not approved based only on its advertised parameter count.
+A model is not approved based only on its advertised parameter count or the device's nominal RAM.
 
 ## 9. Acceptance gates
 
@@ -157,9 +173,10 @@ Gate E — release:
 
 ## 10. Current next actions
 
-1. Confirm Android build after the dependency correction (manual CI only, with user authorization).
-2. Confirm exact POCO X6 RAM/storage variant.
-3. Pin LiteRT-LM Android and Web package versions and choose one small, licensed Portuguese-capable model for a benchmark.
-4. Implement Android ChatEngine adapter and a transparent unavailable state before enabling generation.
-5. Implement Web adapter separately, reusing orchestration contracts, not Android binaries.
-6. Benchmark before deciding the default model or enabling image generation.
+1. Correct the build baseline and confirm whether the repository has a usable Gradle Wrapper; none is currently present.
+2. Run the Android build only after explicit user authorization; CI remains manual-only.
+3. Pin LiteRT-LM Android `0.18.0` and prototype the Qwen3-0.6B artifact only after the baseline build passes.
+4. Implement model download with immutable revision, SHA-256, free-space checks, temporary-file handling and explicit user consent.
+5. Implement the Android ChatEngine adapter with background initialization, single-thread ownership, streaming, cancellation and safe close semantics.
+6. Benchmark on the physical POCO X6 before choosing defaults or enabling image generation.
+7. Implement the Web runtime separately after the Android path is stable.
