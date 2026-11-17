@@ -1,20 +1,81 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import {
+  CHAT_MESSAGE_LIMIT,
+  loadChatMessages,
+  saveChatMessages,
+  type ChatMessage,
+} from "./lib/chatStorage";
 
 type Feature = "Chat" | "Mangá" | "Documentos" | "Memória";
 
 const features: Feature[] = ["Chat", "Mangá", "Documentos", "Memória"];
 
+function createMessageId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export default function App() {
   const [active, setActive] = useState<Feature>("Chat");
   const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [storageReady, setStorageReady] = useState(false);
+  const [storageNotice, setStorageNotice] = useState("Carregando histórico local...");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadChatMessages()
+      .then((savedMessages) => {
+        if (!cancelled) {
+          setMessages(savedMessages);
+          setStorageNotice("Histórico salvo somente neste navegador e dispositivo.");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStorageNotice("Não foi possível ler o histórico local. As mensagens desta sessão ainda podem ser usadas, mas não serão persistidas.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setStorageReady(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!storageReady) return;
+
+    let cancelled = false;
+    saveChatMessages(messages).then(
+      () => {
+        if (!cancelled) {
+          setStorageNotice("Histórico salvo somente neste navegador e dispositivo.");
+        }
+      },
+      () => {
+        if (!cancelled) {
+          setStorageNotice("Falha ao salvar localmente. O histórico pode se perder ao fechar esta página.");
+        }
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [messages, storageReady]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const cleanMessage = draft.trim();
-    if (!cleanMessage) return;
+    if (!cleanMessage || cleanMessage.length > CHAT_MESSAGE_LIMIT) return;
 
-    setMessages((current) => [...current, cleanMessage]);
+    setMessages((current) => [
+      ...current,
+      { id: createMessageId(), text: cleanMessage, createdAt: Date.now() },
+    ].slice(-300));
     setDraft("");
   }
 
@@ -51,16 +112,16 @@ export default function App() {
                 <div className="welcome">
                   <h2>O que vamos criar hoje?</h2>
                   <p>
-                    A interface já recebe suas mensagens. O modelo de IA local
+                    O histórico agora pode ser salvo localmente. O modelo de IA
                     ainda será integrado; por enquanto, não há respostas automáticas.
                   </p>
                 </div>
               ) : (
                 <ol className="messages">
-                  {messages.map((message, index) => (
-                    <li className="message" key={index}>
+                  {messages.map((message) => (
+                    <li className="message" key={message.id}>
                       <span className="message-label">Você</span>
-                      <p>{message}</p>
+                      <p>{message.text}</p>
                     </li>
                   ))}
                 </ol>
@@ -72,14 +133,17 @@ export default function App() {
                 aria-label="Escreva sua mensagem"
                 placeholder="Escreva uma mensagem..."
                 value={draft}
+                maxLength={CHAT_MESSAGE_LIMIT}
                 onChange={(event) => setDraft(event.target.value)}
               />
-              <button type="submit" disabled={!draft.trim()}>
+              <button type="submit" disabled={!draft.trim() || draft.trim().length > CHAT_MESSAGE_LIMIT}>
                 Enviar
               </button>
             </form>
+            <p className="notice" role="status">{storageNotice}</p>
             <p className="notice">
-              Protótipo: mensagens mantidas somente nesta sessão; ainda sem motor de IA.
+              Limite local: 300 mensagens. Os dados não são enviados para servidores.
+              Limpar os dados do navegador pode apagar este histórico.
             </p>
           </>
         ) : (
