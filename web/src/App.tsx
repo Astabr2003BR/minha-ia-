@@ -18,7 +18,7 @@ export default function App() {
   const [active, setActive] = useState<Feature>("Chat");
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [storageReady, setStorageReady] = useState(false);
+  const [storageReady, setStorageReady] = useState(false);\n  const [canPersist, setCanPersist] = useState(false);
   const [storageNotice, setStorageNotice] = useState("Carregando histórico local...");
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!storageReady) return;
+    if (!storageReady || !canPersist) return;
 
     let cancelled = false;
     saveChatMessages(messages).then(
@@ -65,7 +65,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [messages, storageReady]);
+  }, [messages, storageReady, canPersist]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
