@@ -36,8 +36,10 @@ feature/phase1-scaffold
 - Source files were committed to this branch and fetched back for review.
 - Static review confirmed Android database schema version 3 and explicit migration from earlier versions.
 - Static review confirmed Web IndexedDB schema version 3, separate document store, UTF-8 validation, 1 MiB limit and deterministic pruning of oldest documents.
-- No npm install, TypeScript build, Vite build, Gradle build, emulator test, browser runtime test or POCO X6 5G test has been executed in this environment.
-- GitHub Actions status must be checked separately; no successful build is claimed.
+- GitHub Actions run 44168983019 on commit 4e0b685dffec56acc72b9e138c54387ba2ed7b78 completed the Web dependency install and production build successfully. This run included the document-import implementation but preceded the final small IndexedDB blocked-open cleanup.
+- The Android debug build in that same run was still in progress at the last status check; no Android build success is claimed.
+- No browser runtime, Android emulator, physical-device or POCO X6 5G test has been executed.
+- To honor the no-build-without-approval rule, CI was changed to run only through manual workflow dispatch. Future pushes no longer trigger builds automatically.
 
 ## Security notes
 - No broad Android storage permission was added; file access is user-initiated through the system picker.
