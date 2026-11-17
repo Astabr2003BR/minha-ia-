@@ -111,7 +111,18 @@ export default function App() {
       return;
     }
     try {
-      const content = await file.text();
+      const bytes = await file.arrayBuffer();
+      if (bytes.byteLength > DOCUMENT_BYTE_LIMIT) {
+        setStorageNotice("O arquivo ultrapassa o limite de 1 MB.");
+        return;
+      }
+      let content: string;
+      try {
+        content = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      } catch {
+        setStorageNotice("O arquivo não contém texto UTF-8 válido.");
+        return;
+      }
       if (!content.trim()) {
         setStorageNotice("O documento está vazio.");
         return;
