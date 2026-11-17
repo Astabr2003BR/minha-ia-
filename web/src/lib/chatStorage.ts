@@ -88,7 +88,7 @@ export async function loadChatMessages(): Promise<ChatMessage[]> {
   }
 }
 
-export async function saveChatMessages(messages: ChatMessage[]): Promise<void> {
+async function writeChatMessages(messages: ChatMessage[]): Promise<void> {
   if (!Array.isArray(messages) || !messages.every(isChatMessage)) {
     throw new Error("Não foi possível salvar: mensagem inválida.");
   }
@@ -113,3 +113,12 @@ export async function saveChatMessages(messages: ChatMessage[]): Promise<void> {
 
 export const CHAT_MESSAGE_LIMIT = MAX_MESSAGE_LENGTH;
 export const CHAT_HISTORY_LIMIT = MAX_MESSAGES;
+
+
+let writeQueue: Promise<void> = Promise.resolve();
+
+export function saveChatMessages(messages: ChatMessage[]): Promise<void> {
+  const operation = writeQueue.then(() => writeChatMessages(messages));
+  writeQueue = operation.catch(() => undefined);
+  return operation;
+}
