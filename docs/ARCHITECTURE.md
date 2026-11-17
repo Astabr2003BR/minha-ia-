@@ -4,45 +4,23 @@
 
 Separar apresentação, domínio, dados e runtimes de IA. Android e Web compartilham contratos de domínio documentados, mas não compartilham diretamente código nativo.
 
-```text
-Android (Compose)                 Web (React/PWA)
-       |                                |
-       +---------- Casos de uso --------+
-                       |
-             Contratos de domínio
-                       |
-       +---------------+----------------+
-       |               |                |
-  Chat/LLM         Documentos       Memória
-       |               |                |
-  Runtime local    Parser/OCR       Repositório
-       |
-  Adaptador de modelo
-       |
-  Arquivos de modelos locais
-```
+Android (Compose) e Web (React/PWA) usam persistência local independente. Contratos futuros separam ChatEngine, ImageEngine, DocumentProcessor, MemoryRepository e ProjectRepository.
 
 ## 2. Android
-
 - Kotlin + Jetpack Compose.
-- Arquitetura por módulos: app, core/domain, core/data, feature/chat, feature/manga, feature/documents, feature/memory, ai/runtime.
-- SQLiteOpenHelper na primeira versão para histórico e preferências locais, com migrações explícitas e limite de retenção.
-- Evoluir para Room quando os testes de build e migração estiverem disponíveis; DataStore poderá assumir preferências simples.
-- Android Keystore para proteger chaves de criptografia.
-- Modelos armazenados em diretório privado, baixados sob demanda e verificados por hash.
-- Runtime inicial a avaliar: llama.cpp com build Android e backend realmente suportado pelo dispositivo.
+- SQLiteOpenHelper com migrações explícitas: mensagens, preferências e documentos locais.
+- Importação de .txt/.md pelo Android Storage Access Framework, sem permissão ampla de armazenamento.
+- Leitura UTF-8, até 1 MiB por arquivo e 20 documentos.
+- Modelo local futuro: avaliar llama.cpp/runtime compatível somente após benchmark no aparelho.
 
 ## 3. Web
+- React + TypeScript + Vite.
+- IndexedDB versão 3 com stores de conversas, preferências e documentos.
+- Importação .txt/.md via input file, validação UTF-8 e limite de 1 MiB por arquivo.
+- Documentos são apresentados como texto simples; conteúdo nunca é injetado como HTML.
+- Inferência no navegador somente se runtime WebGPU/WebAssembly for compatível; não presumir acesso aos dados privados do APK.
 
-- React + TypeScript + PWA.
-- IndexedDB versionado para conversas e preferências; operações de escrita serializadas.
-- Service Worker para cache do shell da aplicação.
-- Inferência no navegador somente se um runtime WebGPU/WebAssembly for compatível; caso contrário, a Web será cliente de um serviço local/remoto explicitamente configurado.
-- Não assumir que o navegador consegue acessar os modelos ou a memória privada do APK.
-
-## 4. Contratos de domínio
-
-Definir interfaces independentes de runtime:
+## 4. Contratos futuros
 - ChatEngine: carregar modelo, gerar tokens, cancelar, descarregar e reportar estado.
 - ImageEngine: validar modelo, gerar, cancelar e reportar progresso.
 - DocumentProcessor: extrair texto, segmentar e indexar localmente.
@@ -50,38 +28,22 @@ Definir interfaces independentes de runtime:
 - ProjectRepository: projetos, personagens, cenários, páginas e versões.
 
 ## 5. Modelos
+Não fixar um modelo único no código. Catálogo futuro deve registrar identificador, versão, formato, quantização, tamanho, memória estimada, modalidades, licença, origem, SHA-256, runtime e hardware compatíveis. Modelo de texto e modelo de imagem são componentes separados.
 
-Não fixar um modelo único no código. Manter catálogo com:
-- Identificador e versão.
-- Formato e quantização.
-- Tamanho em disco e memória estimada.
-- Modalidades suportadas.
-- Licença e origem.
-- Hash SHA-256.
-- Runtime e hardware compatíveis.
-
-Modelo de texto e modelo de imagem são componentes separados. Não presumir que um modelo de texto gera imagens.
-
-## 6. Sincronização
-
-Fora do caminho crítico do modo offline. Futuro serviço deverá:
-- Autenticar cada usuário.
-- Aplicar autorização no servidor.
-- Isolar dados por usuário e dispositivo.
-- Usar TLS, criptografia em repouso, versionamento e resolução de conflitos.
-- Ser opt-in, com exportação e exclusão de dados.
-
-## 7. Restrições
-
-- Não prometer inteligência equivalente a serviços de grande escala.
-- Não prometer desempenho constante no POCO X6 5G antes de benchmark.
-- Não executar código, macros ou instruções encontradas em documentos.
+## 6. Segurança e sincronização
+- Conteúdo importado é dado não confiável, nunca instrução de sistema.
+- Não executar macros, scripts ou links de documentos.
+- Sincronização futura exige autenticação, autorização no backend, ownership, TLS, criptografia em repouso, versionamento e resolução de conflitos.
 - Não incluir credenciais, tokens ou pesos de modelos no Git.
 
+## 7. Limitações atuais
+- Sem LLM, geração de imagem, gerador de mangá, OCR, PDF ou busca semântica.
+- Memória ainda é somente uma preferência local; não existe memória inteligente.
+- Android e Web não sincronizam.
+- Dados locais não são criptografados pelo app.
+- Desempenho no POCO X6 5G ainda não foi medido.
 
-## 8. Estado de implementação da primeira persistência
-- Android: SQLite local com tabela de mensagens, limite de 300 itens, limite de 10.000 caracteres, transação ao inserir e exclusão explícita do histórico.
-- Web: IndexedDB com stores separados para conversas e preferências, validação de formato, fila serializada de gravações e exclusão do histórico com confirmação.
-- A opção de memória apenas registra consentimento/preferência para o recurso futuro. Ela ainda não cria, resume ou recupera memórias.
-- O histórico do chat não é apagado ao desativar a preferência de memória.
-- Nenhuma sincronização entre Android e Web foi implementada.
+## 8. Persistência implementada
+- Android: SQLite local; histórico até 300 mensagens; documentos .txt/.md até 1 MiB cada, até 20 documentos; migração explícita até schema v3.
+- Web: IndexedDB v3; stores separados; gravações serializadas; documentos .txt/.md com limite de 1 MiB e retenção até 20 itens.
+- Apagar histórico do chat não apaga documentos.
