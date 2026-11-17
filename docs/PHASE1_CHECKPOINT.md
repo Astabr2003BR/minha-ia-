@@ -1,48 +1,56 @@
-# Phase 1 — interactive scaffold and first local persistence checkpoint
+# Phase 1 — local persistence and configurable-memory preference checkpoint
 
 ## Branch
 `feature/phase1-scaffold`
 
-## Added
-- Android application skeleton using Kotlin built into AGP 9.x and Jetpack Compose.
-- Web application skeleton using React, TypeScript and Vite with the React plugin configured.
-- Navigation placeholders for Chat, Mangá, Documentos and Memória.
-- Interactive chat composer on Android and Web.
-- Web chat history persisted in IndexedDB on the same browser/device.
-- IndexedDB schema version 1, message shape validation, maximum 300 messages, maximum 10,000 characters per message, and serialized writes.
-- Web app reports load/save failures and does not overwrite existing local data when history loading fails.
-- Explicit notice that no AI model is connected and no automatic assistant responses are generated.
-- Build setup notes in `docs/BUILD_SETUP.md`.
-- GitHub Actions workflow for Web build and Android debug build checks.
+## Implemented in this checkpoint
+- Android chat history persisted in a private SQLite database through `SQLiteOpenHelper`.
+- Android message insertion uses a transaction and prunes history to the latest 300 messages.
+- Android message validation: non-empty ID/text and a 10,000-character maximum.
+- Android memory preference stored locally, default off.
+- Android UI can toggle the future-memory preference and explicitly clear chat history after confirmation.
+- Android database operations run on `Dispatchers.IO`; the UI disables conflicting writes while a mutation is active.
+- Web chat history persisted in IndexedDB.
+- Web IndexedDB schema upgraded to version 2 with a separate settings object store.
+- Web memory preference persisted locally, default off.
+- Web UI can toggle the future-memory preference and clear chat history after confirmation.
+- Web writes are serialized through a queue; malformed records are rejected.
+- Web history read failure prevents the session from overwriting the existing stored conversation.
+- Fixed malformed literal escape in `web/src/App.tsx` that would prevent TypeScript parsing.
+- Updated CSS and architecture documentation.
 
-## Toolchain reviewed
-- Android Gradle Plugin 9.4.0 stable line.
-- Gradle 9.6.0 minimum for AGP 9.4.
-- JDK 17.
-- Compose BOM 2026.09.00.
-- Kotlin Compose compiler plugin 2.4.21.
-- Web: React 19, Vite 7 and TypeScript 5.8.
+## Explicitly not implemented yet
+- The memory preference is only a consent/configuration flag. There is no automatic memory extraction, retrieval, editing or deletion because no model/memory engine is connected.
+- No assistant response generation or local LLM runtime is connected.
+- No model downloader, model catalogue, license verification or SHA-256 download verification is implemented.
+- No PDF parser/OCR or document indexing is implemented.
+- No image-generation runtime is implemented.
+- No manga page/character/scene generator is implemented.
+- Android and Web data are not synchronized.
+- Web IndexedDB and Android SQLite are not encrypted by this app.
+- No multi-user accounts or server-side isolation are implemented.
 
-## Current behavior and limitations
-- Web chat history is stored locally in IndexedDB; it is not synchronized and is not encrypted by this app.
-- Browser data may be removed by clearing site data or browser storage.
-- The Android chat still uses volatile in-memory state and loses messages when the process/session ends.
-- No AI inference, model download, PDF import/OCR, image generation, or account/sync backend is implemented.
-- No Android persistence/memory settings UI is implemented yet.
+## Limits
+- 300 chat messages per local conversation.
+- 10,000 characters per message.
+- Web data stays in the browser origin's IndexedDB.
+- Android data stays in the app's private SQLite database.
+- Clearing browser site data or uninstalling/clearing Android app data can remove local content.
 
-## Validation
-- Relevant source files were written and fetched back from GitHub for inspection.
-- Package JSON was parsed successfully in an earlier checkpoint.
-- Source review checked the IndexedDB load-before-save gate, malformed-record rejection, message length/history bounds, and serialized writes.
-- No npm install, TypeScript check, Vite build, browser IndexedDB test, Gradle sync/build, or POCO X6 5G runtime test has been executed in this session.
-- The CI workflow file exists; no CI run result is confirmed in this checkpoint.
+## Validation evidence
+- The changed Android, Web, storage and CSS files were fetched back from the GitHub branch after commits.
+- Static content checks confirmed the IndexedDB version 2 stores, serialized write queue, memory preference operations, history deletion controls, and Android SQLite/history/memory code are present.
+- The malformed literal backslash-n sequence is no longer present in the Web App source.
+- Attempted to clone the branch into a test container to run `npm install` and `npm run build`; the attempt was blocked because the container could not resolve `github.com`. No npm install or build was executed.
+- No Gradle sync/build, Android unit/instrumentation test, browser runtime test, or POCO X6 5G test has been executed.
+- The GitHub CI workflow exists, but no successful CI result has been confirmed for this checkpoint.
 
-## Known setup gap
-Gradle Wrapper scripts/JAR are not yet present. CI uses a pinned Gradle 9.6.0 installation. A local Android Studio sync/build and physical-device test are still required.
+## Build setup gap
+Gradle Wrapper scripts/JAR are not included yet. The GitHub Actions workflow uses Gradle 9.6.0 directly. A real Android build and device test remain required.
 
-## Security and privacy notes
-- No API keys or credentials are included.
-- Android backup is disabled in the initial manifest.
-- The public repository must contain no personal data, model weights, tokens or private documents.
-- Web chat content remains in the browser's local origin storage. It is not sent to a server by the current UI, but same-origin scripts can access IndexedDB; this is not an encrypted vault.
-- The public app is currently single-profile; do not use it for private multi-user data until account isolation and storage ownership are designed and tested.
+## Security notes
+- No API keys, credentials, personal documents or model weights were added.
+- Android app backup remains disabled.
+- The public repository must never contain secrets, private documents, personal chat exports or model weights without explicit license review.
+- Local persistence is not equivalent to encryption. Do not use this prototype as a secure vault.
+- The memory preference does not affect or delete chat history.
