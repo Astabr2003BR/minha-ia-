@@ -1,0 +1,42 @@
+# Android / Gradle
+.gradle/
+**/build/
+local.properties
+*.jks
+*.keystore
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Node / Web
+node_modules/
+dist/
+.vite/
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials/
+
+# Model weights and generated user data
+*.gguf
+*.safetensors
+*.onnx
+*.ckpt
+models/
+user-data/
+backups/
+
+# OS
+.DS_Store
+Thumbs.db
