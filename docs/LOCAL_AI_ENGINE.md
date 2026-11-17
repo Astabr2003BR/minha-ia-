@@ -54,6 +54,8 @@ Primary candidate: LiteRT-LM Web package (`@litert-lm/core`) for local token str
 
 UI -> ChatOrchestrator -> ChatEngine interface -> platform runtime -> local model.
 
+The Android-side contract is now defined in `app/src/main/java/br/com/minhaia/ai/ChatEngine.kt` (states, typed failures, prompt roles and bounded generation options). It is an interface only: no LiteRT-LM adapter, model downloader or generated AI response is implemented yet. The interface has not been compiled or runtime-tested.
+
 The orchestrator owns:
 - conversation prompt assembly and bounded context;
 - streaming/cancel/error state;
