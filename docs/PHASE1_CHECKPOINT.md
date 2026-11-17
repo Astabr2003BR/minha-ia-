@@ -19,6 +19,7 @@ feature/phase1-scaffold
 
 ## Not implemented
 - No local LLM runtime adapter or assistant response generation. The Android ChatEngine interface contract exists, but is not connected to a runtime and has not been compiled/tested.
+- Added JUnit contract tests for generation option boundaries and blank prompt rejection; tests are committed but have not been executed.
 - No document question answering, semantic indexing, chunking or retrieval.
 - No PDF parsing, OCR, image extraction or Office document support.
 - No image generation or manga page generation.
@@ -34,6 +35,7 @@ feature/phase1-scaffold
 
 ## Validation evidence
 - Source files were committed to this branch and fetched back for review.
+- Added JUnit 4.13.2 as an Android unit-test dependency and committed ChatEngineContractTest; no test result is claimed because CI/build was not run.
 - Static review confirmed Android database schema version 3 and explicit migration from earlier versions.
 - Static review confirmed Web IndexedDB schema version 3, separate document store, UTF-8 validation, 1 MiB limit and deterministic pruning of oldest documents.
 - GitHub Actions run 44168983019 on commit 4e0b685dffec56acc72b9e138c54387ba2ed7b78 completed the Web dependency installation and production build successfully.
