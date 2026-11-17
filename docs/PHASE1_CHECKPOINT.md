@@ -18,7 +18,7 @@ feature/phase1-scaffold
 - Web IndexedDB schema version 3 adds a documents object store; old stores are retained.
 
 ## Not implemented
-- No local LLM or assistant response generation.
+- No local LLM runtime adapter or assistant response generation. The Android ChatEngine interface contract exists, but is not connected to a runtime and has not been compiled/tested.
 - No document question answering, semantic indexing, chunking or retrieval.
 - No PDF parsing, OCR, image extraction or Office document support.
 - No image generation or manga page generation.
