@@ -26,8 +26,8 @@ Android (Compose)                 Web (React/PWA)
 
 - Kotlin + Jetpack Compose.
 - Arquitetura por módulos: app, core/domain, core/data, feature/chat, feature/manga, feature/documents, feature/memory, ai/runtime.
-- Room para dados relacionais.
-- DataStore para preferências não sensíveis.
+- SQLiteOpenHelper na primeira versão para histórico e preferências locais, com migrações explícitas e limite de retenção.
+- Evoluir para Room quando os testes de build e migração estiverem disponíveis; DataStore poderá assumir preferências simples.
 - Android Keystore para proteger chaves de criptografia.
 - Modelos armazenados em diretório privado, baixados sob demanda e verificados por hash.
 - Runtime inicial a avaliar: llama.cpp com build Android e backend realmente suportado pelo dispositivo.
@@ -35,7 +35,7 @@ Android (Compose)                 Web (React/PWA)
 ## 3. Web
 
 - React + TypeScript + PWA.
-- IndexedDB para conversas, metadados e arquivos locais.
+- IndexedDB versionado para conversas e preferências; operações de escrita serializadas.
 - Service Worker para cache do shell da aplicação.
 - Inferência no navegador somente se um runtime WebGPU/WebAssembly for compatível; caso contrário, a Web será cliente de um serviço local/remoto explicitamente configurado.
 - Não assumir que o navegador consegue acessar os modelos ou a memória privada do APK.
@@ -77,3 +77,11 @@ Fora do caminho crítico do modo offline. Futuro serviço deverá:
 - Não prometer desempenho constante no POCO X6 5G antes de benchmark.
 - Não executar código, macros ou instruções encontradas em documentos.
 - Não incluir credenciais, tokens ou pesos de modelos no Git.
+
+
+## 8. Estado de implementação da primeira persistência
+- Android: SQLite local com tabela de mensagens, limite de 300 itens, limite de 10.000 caracteres, transação ao inserir e exclusão explícita do histórico.
+- Web: IndexedDB com stores separados para conversas e preferências, validação de formato, fila serializada de gravações e exclusão do histórico com confirmação.
+- A opção de memória apenas registra consentimento/preferência para o recurso futuro. Ela ainda não cria, resume ou recupera memórias.
+- O histórico do chat não é apagado ao desativar a preferência de memória.
+- Nenhuma sincronização entre Android e Web foi implementada.
