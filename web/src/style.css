@@ -67,3 +67,36 @@ h1 { margin: 8px 0 18px; font-size: 30px; }
   line-height: 1.5;
 }
 .memory-setting input { width: 18px; height: 18px; flex: 0 0 auto; accent-color: #a9c4ff; }
+
+
+.file-input { display: none; }
+.documents-module { justify-content: flex-start; gap: 12px; }
+.document-list { display: grid; gap: 6px; padding-left: 20px; }
+.document-select {
+  border: 0;
+  padding: 8px 0;
+  color: #dce6fa;
+  background: transparent;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.document-preview {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #30394a;
+  border-radius: 12px;
+  background: #191f2b;
+}
+.document-preview h3 { margin: 0 0 10px; overflow-wrap: anywhere; }
+.document-preview pre {
+  max-height: 45vh;
+  overflow: auto;
+  margin: 0;
+  color: #d7deeb;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  line-height: 1.55;
+}
