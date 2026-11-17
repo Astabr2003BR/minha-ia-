@@ -10,8 +10,11 @@ The Android module currently targets:
 - Kotlin support: built into AGP 9.x
 - Compose compiler plugin: Kotlin 2.4.21
 - Compose BOM: 2026.09.00
+- Unit tests: JUnit 4.13.2
 
-The repository currently does not contain Gradle Wrapper scripts/JAR. CI installs Gradle 9.6.0 directly. A reproducible local build workflow still requires adding and verifying the official Gradle Wrapper files.
+The repository currently does not contain Gradle Wrapper scripts/JAR. CI installs Gradle 9.6.0 directly. A reproducible local build workflow still requires adding and verifying the official Gradle Wrapper files. Do not generate wrapper scripts/JAR by hand; use the official Gradle wrapper task once a controlled Gradle 9.6.0 environment is authorized.
+
+A first JUnit contract test file now covers generation-option bounds and blank prompt rejection. These tests have not been executed.
 
 No Android build has been run after the dependency correction to `activity-compose:1.13.0` and `lifecycle-runtime-ktx:2.11.0`. Do not treat dependency declarations as proof of a successful build.
 
