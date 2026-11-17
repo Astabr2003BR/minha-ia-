@@ -3,7 +3,7 @@
 ## Android
 
 The Android module currently targets:
-- Android Gradle Plugin: 9.4.0 (stable release line)
+- Android Gradle Plugin: 9.4.0
 - Gradle: 9.6.0 minimum for AGP 9.4
 - JDK: 17
 - Android compile SDK: 36
@@ -11,7 +11,9 @@ The Android module currently targets:
 - Compose compiler plugin: Kotlin 2.4.21
 - Compose BOM: 2026.09.00
 
-Use an Android Studio release that supports AGP 9.4 and Gradle 9.6. The repository does not yet include the Gradle Wrapper scripts/JAR, so wrapper generation and a real sync/build are still required before claiming Android build success.
+The repository currently does not contain Gradle Wrapper scripts/JAR. CI installs Gradle 9.6.0 directly. A reproducible local build workflow still requires adding and verifying the official Gradle Wrapper files.
+
+No Android build has been run after the dependency correction to `activity-compose:1.13.0` and `lifecycle-runtime-ktx:2.11.0`. Do not treat dependency declarations as proof of a successful build.
 
 ## Web
 
@@ -20,10 +22,18 @@ Use an Android Studio release that supports AGP 9.4 and Gradle 9.6. The reposito
 - Run the development server with `npm run dev`.
 - Run the production compile with `npm run build`.
 
+## Current implementation facts
+
+- Android chat history is persisted in private SQLite (up to 300 messages).
+- Web chat history is persisted in IndexedDB (up to 300 messages).
+- Android and Web each import TXT/Markdown locally, with UTF-8 validation and a 1 MiB per-file limit.
+- Memory is only a local preference flag, default off; intelligent memory is not implemented.
+- The chat UI does not call a model and does not generate automatic AI responses.
+- Android and Web storage are independent; no synchronization exists.
+
 ## Validation status
 
-No Gradle sync, Android build, npm install, TypeScript check, Vite build, browser test or physical-device test has been executed from this repository during this phase. The versions above were checked against current official documentation on 2026-11-17; actual dependency resolution remains pending.
-
-## Important
-
-The current chat UI is a local interaction prototype. It stores messages in process memory only, does not call a model, and loses messages when the app/page session is restarted.
+- A prior GitHub Actions run completed the Web dependency installation and production build successfully.
+- That run's Android build failed during dependency resolution before Kotlin compilation; the dependency versions were subsequently corrected, but the corrected Android build has not been executed.
+- No browser runtime, Android emulator, physical-device or POCO X6 5G test has been executed in this continuation.
+- CI is manual-only. No build was started in this continuation.
