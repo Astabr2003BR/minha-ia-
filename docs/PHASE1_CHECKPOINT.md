@@ -36,10 +36,11 @@ feature/phase1-scaffold
 - Source files were committed to this branch and fetched back for review.
 - Static review confirmed Android database schema version 3 and explicit migration from earlier versions.
 - Static review confirmed Web IndexedDB schema version 3, separate document store, UTF-8 validation, 1 MiB limit and deterministic pruning of oldest documents.
-- GitHub Actions run 44168983019 on commit 4e0b685dffec56acc72b9e138c54387ba2ed7b78 completed the Web dependency install and production build successfully. This run included the document-import implementation but preceded the final small IndexedDB blocked-open cleanup.
-- The Android debug build in that same run was still in progress at the last status check; no Android build success is claimed.
+- GitHub Actions run 44168983019 on commit 4e0b685dffec56acc72b9e138c54387ba2ed7b78 completed the Web dependency installation and production build successfully.
+- The Android debug build in that run failed at dependency resolution before Kotlin compilation: activity-compose:1.14.0 and lifecycle-runtime-ktx:2.12.0 could not be found in the configured Google Maven or Maven Central repositories.
+- Those declarations were corrected in commit 424c20b5a72a59b156fe415710bd9d47a1380ed8 to the official AndroidX stable versions activity-compose:1.13.0 and lifecycle-runtime-ktx:2.11.0. This correction has not yet been built or runtime-tested.
 - No browser runtime, Android emulator, physical-device or POCO X6 5G test has been executed.
-- To honor the no-build-without-approval rule, CI was changed to run only through manual workflow dispatch. Future pushes no longer trigger builds automatically.
+- CI is configured for manual workflow dispatch only; pushes do not trigger builds. No build was started during this continuation.
 
 ## Security notes
 - No broad Android storage permission was added; file access is user-initiated through the system picker.
