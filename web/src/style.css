@@ -47,3 +47,23 @@ h1 { margin: 8px 0 18px; font-size: 30px; }
   .composer { gap: 6px; }
   .composer button { padding: 10px 12px; }
 }
+
+.secondary-action {
+  align-self: flex-start;
+  border: 1px solid #45516a;
+  border-radius: 10px;
+  padding: 9px 13px;
+  color: #d8e0ef;
+  background: transparent;
+  cursor: pointer;
+}
+.secondary-action:disabled { opacity: .45; cursor: not-allowed; }
+.memory-setting {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 18px 0;
+  color: #e2e8f3;
+  line-height: 1.5;
+}
+.memory-setting input { width: 18px; height: 18px; flex: 0 0 auto; accent-color: #a9c4ff; }
