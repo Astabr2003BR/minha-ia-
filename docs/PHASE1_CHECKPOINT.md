@@ -1,56 +1,46 @@
-# Phase 1 — local persistence and configurable-memory preference checkpoint
+# Phase 1 — local persistence and document import checkpoint
 
 ## Branch
-`feature/phase1-scaffold`
+feature/phase1-scaffold
 
-## Implemented in this checkpoint
-- Android chat history persisted in a private SQLite database through `SQLiteOpenHelper`.
-- Android message insertion uses a transaction and prunes history to the latest 300 messages.
-- Android message validation: non-empty ID/text and a 10,000-character maximum.
-- Android memory preference stored locally, default off.
-- Android UI can toggle the future-memory preference and explicitly clear chat history after confirmation.
-- Android database operations run on `Dispatchers.IO`; the UI disables conflicting writes while a mutation is active.
-- Web chat history persisted in IndexedDB.
-- Web IndexedDB schema upgraded to version 2 with a separate settings object store.
-- Web memory preference persisted locally, default off.
-- Web UI can toggle the future-memory preference and clear chat history after confirmation.
-- Web writes are serialized through a queue; malformed records are rejected.
-- Web history read failure prevents the session from overwriting the existing stored conversation.
-- Fixed malformed literal escape in `web/src/App.tsx` that would prevent TypeScript parsing.
-- Updated CSS and architecture documentation.
+## Implemented
+- Android chat history persisted in private SQLite; 300-message limit and 10,000-character limit.
+- Android memory preference stored locally, default off; this is only a future-consent flag.
+- Web chat history persisted in IndexedDB; writes serialized and malformed records rejected.
+- Web memory preference stored locally, default off.
+- Android and Web import plain-text .txt and Markdown .md files into local storage.
+- Android uses the system document picker (Storage Access Framework); no broad storage permission was added.
+- Imported files are read as UTF-8, non-empty, and limited to 1 MiB each.
+- Local document library retains up to 20 documents; Android uses SQLite and Web uses IndexedDB.
+- Document content is rendered as text, not HTML; no scripts, macros, links or embedded content are executed.
+- Document import and chat history remain separate; deleting chat history does not delete imported documents.
+- Explicit Android database migration from version 2 to version 3 adds the documents table without destructive reset.
+- Web IndexedDB schema version 3 adds a documents object store; old stores are retained.
 
-## Explicitly not implemented yet
-- The memory preference is only a consent/configuration flag. There is no automatic memory extraction, retrieval, editing or deletion because no model/memory engine is connected.
-- No assistant response generation or local LLM runtime is connected.
-- No model downloader, model catalogue, license verification or SHA-256 download verification is implemented.
-- No PDF parser/OCR or document indexing is implemented.
-- No image-generation runtime is implemented.
-- No manga page/character/scene generator is implemented.
-- Android and Web data are not synchronized.
-- Web IndexedDB and Android SQLite are not encrypted by this app.
-- No multi-user accounts or server-side isolation are implemented.
+## Not implemented
+- No local LLM or assistant response generation.
+- No document question answering, semantic indexing, chunking or retrieval.
+- No PDF parsing, OCR, image extraction or Office document support.
+- No image generation or manga page generation.
+- No intelligent memory extraction, retrieval, editing or deletion.
+- No Android/Web synchronization, accounts or server-side multi-user isolation.
+- Local databases are not encrypted by this app.
 
 ## Limits
-- 300 chat messages per local conversation.
-- 10,000 characters per message.
-- Web data stays in the browser origin's IndexedDB.
-- Android data stays in the app's private SQLite database.
-- Clearing browser site data or uninstalling/clearing Android app data can remove local content.
+- 300 chat messages; 10,000 characters per message.
+- 20 local documents; 1 MiB per document.
+- Android and Web storage are independent and do not synchronize.
+- Clearing browser data or uninstalling/clearing app data can remove local content.
 
 ## Validation evidence
-- The changed Android, Web, storage and CSS files were fetched back from the GitHub branch after commits.
-- Static content checks confirmed the IndexedDB version 2 stores, serialized write queue, memory preference operations, history deletion controls, and Android SQLite/history/memory code are present.
-- The malformed literal backslash-n sequence is no longer present in the Web App source.
-- Attempted to clone the branch into a test container to run `npm install` and `npm run build`; the attempt was blocked because the container could not resolve `github.com`. No npm install or build was executed.
-- No Gradle sync/build, Android unit/instrumentation test, browser runtime test, or POCO X6 5G test has been executed.
-- The GitHub CI workflow exists, but no successful CI result has been confirmed for this checkpoint.
-
-## Build setup gap
-Gradle Wrapper scripts/JAR are not included yet. The GitHub Actions workflow uses Gradle 9.6.0 directly. A real Android build and device test remain required.
+- Source files were committed to this branch and fetched back for review.
+- Static review confirmed Android database schema version 3 and explicit migration from earlier versions.
+- Static review confirmed Web IndexedDB schema version 3, separate document store, UTF-8 validation, 1 MiB limit and deterministic pruning of oldest documents.
+- No npm install, TypeScript build, Vite build, Gradle build, emulator test, browser runtime test or POCO X6 5G test has been executed in this environment.
+- GitHub Actions status must be checked separately; no successful build is claimed.
 
 ## Security notes
-- No API keys, credentials, personal documents or model weights were added.
-- Android app backup remains disabled.
-- The public repository must never contain secrets, private documents, personal chat exports or model weights without explicit license review.
-- Local persistence is not equivalent to encryption. Do not use this prototype as a secure vault.
-- The memory preference does not affect or delete chat history.
+- No broad Android storage permission was added; file access is user-initiated through the system picker.
+- Imported content is treated as untrusted plain text and never interpreted as HTML or executable instructions.
+- No API keys, credentials, private documents or model weights were committed.
+- Local persistence is not encryption and must not be treated as a secure vault.
