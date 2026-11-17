@@ -8,32 +8,34 @@
 - [ ] Escolher licenças e modelos após teste de compatibilidade.
 
 ## Fase 1 — Esqueleto executável
-- [ ] Criar projeto Android Kotlin/Compose.
-- [ ] Criar projeto Web React/TypeScript/PWA.
-- [ ] Configurar lint, formatação e testes.
-- [ ] Criar navegação e telas vazias de Chat, Mangá, Imagens, Documentos e Memória.
-- [ ] Adicionar armazenamento local mínimo.
-- [ ] Executar build e testes automatizados.
+- [x] Criar projeto Android Kotlin/Compose (build ainda precisa ser confirmado após correção de dependências).
+- [x] Criar projeto Web React/TypeScript/Vite.
+- [ ] Configurar lint, formatação e testes automatizados.
+- [x] Criar navegação e telas iniciais de Chat, Mangá, Documentos e Memória.
+- [x] Adicionar armazenamento local mínimo (SQLite Android e IndexedDB Web).
+- [x] Importar TXT/Markdown com validação e limites locais.
+- [ ] Executar e aprovar build Android após correção.
+- [ ] Executar testes de runtime Android, Web e regressão em dispositivo físico.
 
 ## Fase 2 — Chat local
-- [ ] Integrar runtime Android.
+- [ ] Fixar versões testadas do runtime Android e Web.
 - [ ] Catálogo e download verificável de modelos.
 - [ ] Streaming, cancelamento e tratamento de falta de memória.
 - [ ] Histórico e exclusão de conversas.
 - [ ] Benchmark no POCO X6 5G.
 
 ## Fase 3 — Memória
-- [ ] Memória desligável e editável.
-- [ ] Separação por usuário/projeto.
+- [ ] Memória desligável, inspecionável e editável.
+- [ ] Separação por perfil/projeto.
 - [ ] Recuperação contextual transparente.
 - [ ] Exportação e exclusão.
 
 ## Fase 4 — Documentos
-- [ ] Importar PDF/TXT.
-- [ ] Limites de tamanho e validação de tipo.
-- [ ] Extração de texto e segmentação.
-- [ ] OCR opcional.
-- [ ] Perguntas com referências às páginas/trechos.
+- [x] Importar TXT/Markdown localmente.
+- [ ] Adicionar exclusão de documentos e limpeza dos índices derivados.
+- [ ] Segmentação e indexação local.
+- [ ] Perguntas com referências aos trechos de origem.
+- [ ] PDF/OCR opcional, após testes de parser, limites e segurança.
 
 ## Fase 5 — Imagens
 - [ ] Avaliar runtime Android compatível.
@@ -43,14 +45,15 @@
 - [ ] Testar temperatura, RAM, bateria e falhas.
 
 ## Fase 6 — Estúdio de mangá
-- [ ] Fichas de personagens e referências aprovadas.
+- [ ] Assistente de roteiro e planejamento de quadros offline.
+- [ ] Fichas de personagens, referências e locks aprovados.
 - [ ] Cenários, poses e expressões.
 - [ ] Montagem de páginas e lettering.
-- [ ] Versionamento e comparação.
-- [ ] Bloqueios de continuidade e aprovação humana.
+- [ ] Versionamento, comparação e aprovação humana.
 
 ## Fase 7 — Web e sincronização
-- [ ] PWA com experiência offline limitada.
+- [ ] PWA com experiência offline limitada por capacidades do navegador.
+- [ ] Runtime de inferência local WebGPU/WASM.
 - [ ] Importar/exportar backup.
 - [ ] Sincronização opcional com autenticação e isolamento.
 - [ ] Testes de conflito e recuperação.
