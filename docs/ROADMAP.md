@@ -4,8 +4,9 @@
 - [x] Registrar objetivo, princípios e escopo.
 - [x] Definir arquitetura Android-first e Web.
 - [x] Definir requisitos iniciais de segurança e testes.
-- [ ] Confirmar configuração exata do POCO X6 5G (RAM/armazenamento/Android).
-- [ ] Escolher licenças e modelos após teste de compatibilidade.
+- [x] Confirmar configuração informada do POCO X6 5G: 8 GB RAM / 256 GB armazenamento.
+- [x] Definir primeiro candidato de benchmark (Qwen3-0.6B + LiteRT-LM 0.18.0), sem aprovação de compatibilidade.
+- [ ] Medir armazenamento livre, Android/HyperOS e RAM disponível durante execução.
 
 ## Fase 1 — Esqueleto executável
 - [x] Criar projeto Android Kotlin/Compose (build ainda precisa ser confirmado após correção de dependências).
@@ -18,11 +19,11 @@
 - [ ] Executar testes de runtime Android, Web e regressão em dispositivo físico.
 
 ## Fase 2 — Chat local
-- [ ] Fixar versões testadas do runtime Android e Web.
-- [ ] Catálogo e download verificável de modelos.
-- [ ] Streaming, cancelamento e tratamento de falta de memória.
-- [ ] Histórico e exclusão de conversas.
-- [ ] Benchmark no POCO X6 5G.
+- [ ] Fixar e validar a dependência LiteRT-LM Android 0.18.0 no build.
+- [ ] Implementar catálogo e download verificável do candidato Qwen3-0.6B.
+- [ ] Implementar inicialização em background, streaming, cancelamento e descarregamento.
+- [ ] Tratar pressão de memória, falta de espaço e falha de hash sem perder histórico.
+- [ ] Benchmark no POCO X6 5G com teste de qualidade em português.
 
 ## Fase 3 — Memória
 - [ ] Memória desligável, inspecionável e editável.
