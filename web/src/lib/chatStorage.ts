@@ -55,6 +55,7 @@ function openDatabase(): Promise<IDBDatabase> {
       return;
     }
     const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
+    let settled = false;
     request.onupgradeneeded = () => {
       const database = request.result;
       if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME);
@@ -65,11 +66,24 @@ function openDatabase(): Promise<IDBDatabase> {
     };
     request.onsuccess = () => {
       const database = request.result;
+      if (settled) {
+        database.close();
+        return;
+      }
+      settled = true;
       database.onversionchange = () => database.close();
       resolve(database);
     };
-    request.onerror = () => reject(request.error ?? new Error("Falha ao abrir o banco local."));
-    request.onblocked = () => reject(new Error("Atualização do banco local bloqueada por outra aba."));
+    request.onerror = () => {
+      if (settled) return;
+      settled = true;
+      reject(request.error ?? new Error("Falha ao abrir o banco local."));
+    };
+    request.onblocked = () => {
+      if (settled) return;
+      settled = true;
+      reject(new Error("Atualização do banco local bloqueada por outra aba."));
+    };
   });
 }
 
